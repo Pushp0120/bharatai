@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { collection, getDocs, doc, updateDoc, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 const ADMIN_UID = 'ma0emJDKvNecQNkuxwJzwPkTVHp2';
@@ -15,7 +15,8 @@ interface UserData {
 }
 
 export default function AdminPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -23,11 +24,16 @@ export default function AdminPage() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      if (!u || u.uid !== ADMIN_UID) {
+      setAuthChecked(true);
+      if (!u) {
+        router.push('/auth');
+        return;
+      }
+      if (u.uid !== ADMIN_UID) {
         router.push('/');
         return;
       }
-      setUser(u);
+      setIsAdmin(true);
       await fetchUsers();
       setLoading(false);
     });
@@ -38,7 +44,7 @@ export default function AdminPage() {
     const snap = await getDocs(collection(db, 'users'));
     const list: UserData[] = snap.docs.map(d => ({
       id: d.id,
-      ...d.data() as any,
+      ...(d.data() as any),
     }));
     setUsers(list);
   };
@@ -50,18 +56,19 @@ export default function AdminPage() {
   };
 
   const filtered = users.filter(u =>
-    u.id.toLowerCase().includes(search.toLowerCase()) ||
-    (u.email || '').toLowerCase().includes(search.toLowerCase())
+    u.id.toLowerCase().includes(search.toLowerCase())
   );
 
   const proCount = users.filter(u => u.plan === 'pro').length;
   const freeCount = users.filter(u => u.plan !== 'pro').length;
 
-  if (loading) return (
+  if (!authChecked || loading) return (
     <div className="min-h-screen flex items-center justify-center bg-orange-50">
       <p className="text-orange-500 text-xl">Loading...</p>
     </div>
   );
+
+  if (!isAdmin) return null;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -101,7 +108,7 @@ export default function AdminPage() {
             <h3 className="font-bold text-gray-800">Users</h3>
             <input
               type="text"
-              placeholder="Search by UID or email..."
+              placeholder="Search by UID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"

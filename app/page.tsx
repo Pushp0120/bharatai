@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from './lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 const FREE_LIMIT = 5;
@@ -60,6 +60,17 @@ export default function Home() {
       const ref = doc(db, 'users', user.uid);
       await updateDoc(ref, { count: increment(1) });
       setUsageCount(prev => prev + 1);
+
+      // Save to history
+      await addDoc(collection(db, 'history'), {
+        uid: user.uid,
+        topic,
+        platform,
+        language,
+        content: data.content,
+        createdAt: Date.now(),
+      });
+
     } catch (e) {
       alert('Error aaya! Try again.');
     }
@@ -80,6 +91,12 @@ export default function Home() {
               <span className="text-sm text-gray-500 bg-orange-50 px-3 py-1 rounded-full">
                 {FREE_LIMIT - usageCount} free left
               </span>
+              <button
+                onClick={() => router.push('/history')}
+                className="text-sm bg-green-500 text-white px-4 py-2 rounded-xl"
+              >
+                📜 History
+              </button>
               <button
                 onClick={() => signOut(auth)}
                 className="text-sm text-gray-500 hover:text-red-500"

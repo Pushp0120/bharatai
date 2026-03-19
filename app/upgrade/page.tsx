@@ -24,7 +24,7 @@ export default function UpgradePage() {
       <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🇮🇳</span>
-          <h1 className="text-xl font-bold text.orange-600">BharatAI</h1>
+          <h1 className="text-xl font-bold text-orange-600">BharatAI</h1>
         </div>
         <button
           onClick={() => router.push('/')}
@@ -67,10 +67,12 @@ export default function UpgradePage() {
           />
           <p className="text-gray-500 text-sm mb-2">UPI ID:</p>
           <p className="font-bold text-orange-600 text-lg mb-4">{upiId}</p>
-          
-            href={upiLink}
+          <button
+            onClick={() => window.open(upiLink)}
             className="block w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl text-center transition"
-         >GPay / PhonePe se Pay karo 📲</a>
+          >
+            GPay / PhonePe se Pay karo
+          </button>
           <p className="text-gray-400 text-xs mt-4">
             Payment ke baad screenshot bhejo — access 24hrs mein milega
           </p>

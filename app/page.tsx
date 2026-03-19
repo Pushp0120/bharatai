@@ -238,7 +238,7 @@ export default function Home() {
           </div>
         )}
 
-        <p className="text-center text-gray-400 text-sm mt-8">Made with love for Indian creators</p>
+        <p className="text-center text-gray-400 text-sm mt-8">Made with love ❤️for Indian creators</p>
       </div>
     </main>
   );

@@ -5,7 +5,7 @@ import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, increment, addDoc, collection } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
-const FREE_LIMIT = 5;
+const FREE_LIMIT = 25;
 
 export default function Home() {
   const [topic, setTopic] = useState('');

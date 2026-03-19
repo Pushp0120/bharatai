@@ -19,6 +19,15 @@ export default function UpgradePage() {
     return () => unsubscribe();
   }, []);
 
+  const handlePayClick = () => {
+    if (/Android|iPhone/i.test(navigator.userAgent)) {
+      window.open(upiLink);
+    } else {
+      navigator.clipboard.writeText(upiId);
+      alert('UPI ID copy ho gaya! GPay/PhonePe mein paste karo: ' + upiId);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 to-green-50">
       <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
@@ -36,7 +45,7 @@ export default function UpgradePage() {
 
       <div className="max-w-md mx-auto px-4 py-10">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Pro Plan lo 🚀</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">Pro Plan lo</h2>
           <p className="text-gray-500">Unlimited content generation ke liye</p>
         </div>
 
@@ -59,7 +68,7 @@ export default function UpgradePage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-          <h3 className="font-bold text-gray-800 mb-4">UPI se pay karo 📱</h3>
+          <h3 className="font-bold text-gray-800 mb-4">UPI se pay karo</h3>
           <img
             src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`}
             alt="UPI QR Code"
@@ -68,8 +77,8 @@ export default function UpgradePage() {
           <p className="text-gray-500 text-sm mb-2">UPI ID:</p>
           <p className="font-bold text-orange-600 text-lg mb-4">{upiId}</p>
           <button
-            onClick={() => window.open(upiLink)}
-            className="block w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl text-center transition"
+            onClick={handlePayClick}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition"
           >
             GPay / PhonePe se Pay karo
           </button>

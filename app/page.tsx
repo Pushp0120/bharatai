@@ -193,7 +193,7 @@ export default function Home() {
           </div>
 
           <button
-            onClick={generateContent}
+            onClick={() => usageCount >= FREE_LIMIT ? router.push('/upgrade') : generateContent()}
             disabled={loading}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl text-lg transition disabled:opacity-50"
           >

@@ -15,6 +15,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [usageCount, setUsageCount] = useState(0);
+  const [isPro, setIsPro] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function Home() {
         await loadUsage(u.uid);
       } else {
         setUser(null);
+        setIsPro(false);
       }
     });
     return () => unsubscribe();
@@ -33,17 +35,21 @@ export default function Home() {
     const ref = doc(db, 'users', uid);
     const snap = await getDoc(ref);
     if (snap.exists()) {
-      setUsageCount(snap.data().count || 0);
+      const data = snap.data();
+      const pro = data.plan === 'pro';
+      setIsPro(pro);
+      setUsageCount(pro ? 0 : data.count || 0);
     } else {
       await setDoc(ref, { count: 0, plan: 'free' });
       setUsageCount(0);
+      setIsPro(false);
     }
   };
 
   const generateContent = async () => {
     if (!user) return router.push('/auth');
     if (!topic) return alert('Topic enter karo!');
-    if (usageCount >= FREE_LIMIT) return router.push('/upgrade');
+    if (!isPro && usageCount >= FREE_LIMIT) return router.push('/upgrade');
 
     setLoading(true);
     setContent('');
@@ -56,9 +62,11 @@ export default function Home() {
       const data = await res.json();
       setContent(data.content);
 
-      const ref = doc(db, 'users', user.uid);
-      await updateDoc(ref, { count: increment(1) });
-      setUsageCount(prev => prev + 1);
+      if (!isPro) {
+        const ref = doc(db, 'users', user.uid);
+        await updateDoc(ref, { count: increment(1) });
+        setUsageCount(prev => prev + 1);
+      }
 
       await addDoc(collection(db, 'history'), {
         uid: user.uid,
@@ -85,21 +93,29 @@ export default function Home() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-gray-500 bg-orange-50 px-3 py-1 rounded-full">
-                {FREE_LIMIT - usageCount} free left
-              </span>
+              {isPro ? (
+                <span className="text-sm bg-purple-100 text-purple-600 px-3 py-1 rounded-full font-bold">
+                  Pro
+                </span>
+              ) : (
+                <span className="text-sm text-gray-500 bg-orange-50 px-3 py-1 rounded-full">
+                  {FREE_LIMIT - usageCount} free left
+                </span>
+              )}
               <button
                 onClick={() => router.push('/history')}
                 className="text-sm bg-green-500 text-white px-4 py-2 rounded-xl"
               >
                 History
               </button>
-              <button
-                onClick={() => router.push('/upgrade')}
-                className="text-sm bg-purple-500 text-white px-4 py-2 rounded-xl"
-              >
-                Pro
-              </button>
+              {!isPro && (
+                <button
+                  onClick={() => router.push('/upgrade')}
+                  className="text-sm bg-purple-500 text-white px-4 py-2 rounded-xl"
+                >
+                  Pro
+                </button>
+              )}
               <button
                 onClick={() => signOut(auth)}
                 className="text-sm text-gray-500 hover:text-red-500"
@@ -126,7 +142,7 @@ export default function Home() {
           <p className="text-gray-500 text-lg">Instagram, YouTube, Twitter ke liye — Hindi, English, Hinglish mein</p>
         </div>
 
-        {user && (
+        {user && !isPro && (
           <div className="bg-white rounded-2xl shadow p-4 mb-6">
             <div className="flex justify-between text-sm mb-2">
               <span className="font-semibold text-gray-700">Free Plan Usage</span>
@@ -143,6 +159,12 @@ export default function Home() {
                 Free limit khatam! Pro plan lo unlimited generations ke liye!
               </p>
             )}
+          </div>
+        )}
+
+        {user && isPro && (
+          <div className="bg-purple-50 rounded-2xl p-4 mb-6 text-center">
+            <p className="text-purple-600 font-bold">Pro Plan Active — Unlimited Generations!</p>
           </div>
         )}
 
@@ -193,11 +215,11 @@ export default function Home() {
           </div>
 
           <button
-            onClick={() => usageCount >= FREE_LIMIT ? router.push('/upgrade') : generateContent()}
+            onClick={() => !isPro && usageCount >= FREE_LIMIT ? router.push('/upgrade') : generateContent()}
             disabled={loading}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl text-lg transition disabled:opacity-50"
           >
-            {loading ? 'Generating...' : usageCount >= FREE_LIMIT ? 'Upgrade to Pro' : 'Generate Content'}
+            {loading ? 'Generating...' : !isPro && usageCount >= FREE_LIMIT ? 'Upgrade to Pro' : 'Generate Content'}
           </button>
         </div>
 
